@@ -33,6 +33,14 @@ def main() -> int:
         # gate's "one text" reading and the judge's side-by-side display.
         print("entry must be a single line", file=sys.stderr)
         return 1
+    if ENTRY != ENTRY.strip():
+        # Leading or trailing white space would waste the judge's reading
+        # and could push the entry over the gate on a recount.
+        print("entry has leading or trailing white space", file=sys.stderr)
+        return 1
+    if any(ord(c) < 32 for c in ENTRY):
+        print("entry holds a control character", file=sys.stderr)
+        return 1
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "entry.txt")
@@ -51,7 +59,12 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
-    print("wrote entry.txt: %d characters" % len(written))
+    import hashlib
+
+    print(
+        "wrote entry.txt: %d characters, sha256 %s"
+        % (len(written), hashlib.sha256(written.encode("utf-8")).hexdigest())
+    )
     return 0
 
 
